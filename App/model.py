@@ -41,12 +41,26 @@ def newCatalog():
     Inicializa el catálogo y retorna el catalogo inicializado.
     """
     libgraph = g.newGraph(7235,compareByKey,directed=True)
-    catalog = {'librariesGraph':libgraph}
+    Bikemap= map.newMap()
+    catalog = {'librariesGraph':libgraph,  "BikesMap":Bikemap}
     #rgraph = g.newGraph(5500,compareByKey)
     fgraph = g.newGraph(111353,compareByKey)
     #catalog['reviewGraph'] = rgraph
     catalog['flightGraph'] = fgraph
     return catalog
+
+def AddCity(catalog, row):
+    Map= catalog["BikesMap"]
+
+    if not map.contains(Map, row["city"]):
+        values={"stations": lt.newList("ARRAY_LIST")}
+        lt.addLast(values["stations"], row["name"])   
+        map.put(Map, row["city"], values)
+    else:
+        city= map.get(catalog, row["city"])
+        lt.addLast(city["stations"], row["name"]) 
+
+
 
 def addLibraryNode (catalog, row):
     """

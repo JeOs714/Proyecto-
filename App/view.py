@@ -40,7 +40,7 @@ operación solicitada
 
 
 def printMenu():
-    print("Bienvenido al Laboratorio 9")
+    print("Bienvenido al Proyecto Final")
     print("1- Cargar información")
     print("2- Contar nodos y enlances cargados ")
     print("3- Obtener el camino de menor costo entre dos vértices usando Dijkstra (origen destino)")

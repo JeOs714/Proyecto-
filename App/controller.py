@@ -65,6 +65,18 @@ def loadLibraries (catalog, sep=','):
     t1_stop = process_time() #tiempo final
     print("Tiempo de ejecución carga de grafo de bibliotecas:",t1_stop-t1_start," segundos")   
 
+def loadCities(catalog, sep=","):
+    t1_start = process_time() #tiempo inicial
+    BikeFile = cf.data_dir + 'bikes_data/station.csv'
+    dialect = csv.excel()
+    dialect.delimiter=sep
+
+    with open(BikeFile, encoding="utf-8-sig") as csvfile:
+        spamreader= csv.DictReader(csvfile, dialect=dialect)
+        for row in spamreader:
+            model.AddCity(catalog, row)
+    t1_stop = process_time() #tiempo final
+    print("Tiempo de ejecución carga de grafo de bibliotecas:",t1_stop-t1_start," segundos")   
 def loadFlights (catalog, sep=';'):
     """
     Carga los vuelos del archivo.
@@ -108,7 +120,7 @@ def loadData (catalog):
     Carga los datos de los archivos en la estructura de datos
     """
     #loadLibraries(catalog)
-    loadFlights(catalog)
+    loadCities(catalog)
 
 # Funciones llamadas desde la vista y enviadas al modelo
 

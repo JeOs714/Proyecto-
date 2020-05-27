@@ -331,7 +331,7 @@ def height (rbt):
 def valueRange(root, keylo, keyhi, comparefunction):
     if root==None:
         return None # rbt is empty
-    klist = lt.newList()
+    klist = lt.newList("ARRAY_LIST")
     valueRangeRec(root, keylo, keyhi, comparefunction, klist)
     return klist
 

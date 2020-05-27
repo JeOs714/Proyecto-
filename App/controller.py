@@ -67,43 +67,67 @@ def loadLibraries (catalog, sep=','):
 
 def loadCities(catalog, sep=","):
     t1_start = process_time() #tiempo inicial
-    BikeFile = cf.data_dir + 'bikes_data/station.csv'
+    BikeFile = cf.data_dir + 'bikes_data1/station.csv'
     dialect = csv.excel()
     dialect.delimiter=sep
 
     with open(BikeFile, encoding="utf-8-sig") as csvfile:
         spamreader= csv.DictReader(csvfile, dialect=dialect)
         for row in spamreader:
-            model.AddCity(catalog, row)
+            AddCity(catalog, row)
     t1_stop = process_time() #tiempo final
-    print("Tiempo de ejecución carga de grafo de bibliotecas:",t1_stop-t1_start," segundos")   
-def loadFlights (catalog, sep=';'):
+    print("Tiempo de ejecución carga de la información fue: ",t1_stop-t1_start," segundos")   
+def loadArbol(catalog, sep=","):
+    t1_start = process_time() #tiempo inicial
+    BikeFile = cf.data_dir + 'bikes_data/trip.csv'
+    dialect = csv.excel()
+    dialect.delimiter=sep
+
+    with open(BikeFile, encoding="utf-8-sig") as csvfile:
+        spamreader= csv.DictReader(csvfile, dialect=dialect)
+        for row in spamreader:
+            addTripDate(catalog, row)
+    t1_stop = process_time() #tiempo final
+    print("Tiempo de ejecución carga de la información del árbol : ",t1_stop-t1_start," segundos")
+
+def loadWeather(catalog,sep= "," ):
+    t1 = process_time() #tiempo inicial
+    flightsfile = cf.data_dir + 'bikes_data1/weather.csv'
+    dialect = csv.excel()
+    dialect.delimiter=sep
+    with open(flightsfile, encoding="utf-8-sig") as csvfile:
+        spamreader = csv.DictReader(csvfile, dialect=dialect)
+        for row in spamreader:
+            addWeather(catalog, row)
+    t2 = process_time() #tiempo final para vértices
+    print("Tiempo de ejecución carga del archivo del clima fue :",t2-t1," segundos") 
+def loadTrips (catalog, sep=';'):
     """
     Carga los vuelos del archivo.
     """
     t1 = process_time() #tiempo inicial
-    flightsfile = cf.data_dir + 'Flights/flights_nodes.csv'
+    flightsfile = cf.data_dir + 'tripxday_edges1/tripday_edges.csv'
     dialect = csv.excel()
     dialect.delimiter=sep
     with open(flightsfile, encoding="utf-8-sig") as csvfile:
         spamreader = csv.DictReader(csvfile, dialect=dialect)
         for row in spamreader:
-            addFlightNode(catalog, row)
+            addTripNode(catalog, row)
     t2 = process_time() #tiempo final para vértices
-    print("Tiempo de ejecución carga de vértices en el grafo de vuelos:",t2-t1," segundos") 
+    print("Tiempo de ejecución carga de vértices en el grafo de viajes:",t2-t1," segundos") 
 
     t3 = process_time() #tiempo inicial para arcos
-    flightsfile = cf.data_dir + 'Flights/flights_edges.csv'
+    flightsfile = cf.data_dir + 'tripxday_edges1/tripday_edges.csv'
     dialect = csv.excel()
     dialect.delimiter=sep
     with open(flightsfile, encoding="utf-8-sig") as csvfile:
         spamreader = csv.DictReader(csvfile, dialect=dialect)
         for row in spamreader:
-            addFlightEdge(catalog, row)
+            addTripEdge(catalog, row)
     t4 = process_time() #tiempo final para carga de vértices y arcos
-    print("Tiempo de ejecución carga de arcos en el grafo de vuelos:",t4-t3," segundos")
+    print("Tiempo de ejecución carga de arcos en el grafo de viajes:",t4-t3," segundos")
 
-    print("Tiempo de ejecución total para carga del grafo de vuelos:",t4-t1," segundos")
+    print("Tiempo de ejecución total para carga del grafo de viajes:",t4-t1," segundos")
 
 
 def initCatalog ():
@@ -121,6 +145,10 @@ def loadData (catalog):
     """
     #loadLibraries(catalog)
     loadCities(catalog)
+    loadArbol(catalog)
+    #loadTrips(catalog)
+    #loadWeather(catalog)
+    sort.mergesort(catalog["List"], comparemayor)
 
 # Funciones llamadas desde la vista y enviadas al modelo
 
@@ -142,8 +170,25 @@ def getShortestPath(catalog, vertices):
     print("Tiempo de ejecución de dijkstra: ",t1_stop-t1_start," segundos")
     return path
 
-def addFlightNode(catalog, row):
-    return model.addFlightNode(catalog, row)
+def addTripNode(catalog, row):
+    return model.addTripNode(catalog, row)
 
-def addFlightEdge (catalog, row):
-    return model.addFlightEdge(catalog, row)
+def addTripEdge (catalog, row):
+    return model.addTripEdge(catalog, row)
+
+def addTripDate(catalog, row):
+    return model.addTripDate(catalog, row)
+def AddCity(catalog, row):
+    return model.AddCity(catalog, row)
+def addWeather(catalog, row):
+    return model.addWeather(catalog, row)
+
+def comparemayor (elem1, elem2):
+    return ( float(elem1['value']) > float(elem2['value']))
+
+def Requerimiento1(catalog, city):
+    return printList( model.Requerimiento1(catalog, city)) 
+def Requerimiento2(catalog, date1, date2):
+    return model.Requerimiento2(catalog, date1, date2)
+def Requerimiento3(catalog, N):
+    return model.Requerimiento3(catalog, N)

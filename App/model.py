@@ -25,9 +25,12 @@ from ADT import list as lt
 from ADT import graph as g
 from ADT import map as map
 from ADT import list as lt
+from ADT import orderedmap as tree
 from DataStructures import listiterator as it
 from datetime import datetime
 from DataStructures import dijkstra as dj
+from datetime import datetime
+from Sorting import mergesort as mg
 """
 Se define la estructura de un catálogo de libros.
 El catálogo tendrá tres listas, una para libros, otra para autores 
@@ -40,25 +43,82 @@ def newCatalog():
     """
     Inicializa el catálogo y retorna el catalogo inicializado.
     """
-    libgraph = g.newGraph(7235,compareByKey,directed=True)
-    Bikemap= map.newMap()
-    catalog = {'librariesGraph':libgraph,  "BikesMap":Bikemap}
+    Tripgraph = g.newGraph(325117 ,compareByKey,directed=True)
+    Bikemap= map.newMap(numelements=50,maptype="PROBING",comparefunction=compareByKey)
+    TripTree= tree.newMap()
+    Stations=map.newMap(comparefunction=compareByKey)
+    Lista=lt.newList("ARRAY_LIST")
+    catalog = {'TripGraph':Tripgraph,  "BikesMap":Bikemap, "TripTree": TripTree, "Stations": Stations, "List":Lista}
     #rgraph = g.newGraph(5500,compareByKey)
     fgraph = g.newGraph(111353,compareByKey)
     #catalog['reviewGraph'] = rgraph
     catalog['flightGraph'] = fgraph
     return catalog
 
-def AddCity(catalog, row):
-    Map= catalog["BikesMap"]
+def NewCity(catalog, row):
+    values={"stations": lt.newList("ARRAY_LIST"), "capacidadmax": lt.newList("ARRAY_LIST") }
+    lt.addLast(values["stations"], row["name"]) 
+    lt.addLast(values["capacidadmax"], {"ciudad":row["name"],"value": int(row["dock_count"])})
+    #lt.addLast(values["capacidadmax"], (row["name"], row["dock_count"]) )
+    map.put(catalog["BikesMap"], row["city"], values)  
 
-    if not map.contains(Map, row["city"]):
-        values={"stations": lt.newList("ARRAY_LIST")}
-        lt.addLast(values["stations"], row["name"])   
-        map.put(Map, row["city"], values)
+def NewStation(catalog, row):
+    values={"stations": lt.newList("ARRAY_LIST")}
+    lt.addLast(values["stations"], row["city"]) 
+    map.put(catalog["Stations"], row["id"], values) 
+
+def newTripDate(catalog, row):
+    formato= '%Y/%m/%d'
+    trip = { "Date": strToDate(row["start_date"].split(" ")[0],formato), "City": None, "Citylist": None}
+    trip["Citylist"]= lt.newList("ARRAY_LIST")
+    trip["City"]= map.newMap(comparefunction=compareByKey)
+    City= map.get(catalog["Stations"], row["start_station_id"])["value"]
+    map.put(trip["City"], City["stations"]["elements"][0], 1)
+    lt.addLast(trip['Citylist'],row['id'])
+    return trip
+
+def addWeather(catalog, row):
+    formato= '%Y/%m/%d'
+    lt.addLast(catalog["List"], {"Date":strToDate(row["date"],formato), "value": row["mean_temperature_f"]} )
+
+def addTripDate (catalog, row):
+    """
+    Adiciona libro al map con key=title
+    """
+    #catalog['booksTree'] = map.put(catalog['booksTree'], int(book['book_id']), book, greater)
+    formato= '%Y/%m/%d'
+    Trips= catalog['TripTree']
+    Exist=tree.get(Trips,strToDate(row["start_date"].split(" ")[0],formato), greater)
+    if Exist:
+        lt.addLast(Exist['Citylist'],row['id'])
+        City= map.get(catalog["Stations"], row["start_station_id"])
+        Nuevovalor= map.get(Exist["City"], City["value"]["stations"]["elements"][0])
+        if Nuevovalor:
+            Nuevovalor["value"] +=1
+            map.put(Exist["City"], City["value"]["stations"]["elements"][0], Nuevovalor["value"])
+        else:
+            map.put(Exist["City"], City["value"]["stations"]["elements"][0], 1)
+        tree.put(catalog['TripTree'],strToDate(row["start_date"].split(" ")[0],formato),Exist, greater)    
+        #director['sum_average_rating'] += float(row['vote_average'])
+       
     else:
-        city= map.get(catalog, row["city"])
-        lt.addLast(city["stations"], row["name"]) 
+        Trip= newTripDate(catalog, row)
+        catalog['TripTree']  = tree.put(Trips , Trip["Date"], Trip, greater)
+        #tree.put(Accidents, Accident['Date'], Accident, greater)
+
+def AddCity(catalog, row):
+    city= map.get(catalog["BikesMap"], row["city"])
+    station= map.get(catalog["BikesMap"], row["name"])
+    if not city:
+        NewCity(catalog, row)
+    else: 
+        lt.addLast(city["value"]["stations"], row["name"]) 
+        lt.addLast(city["value"]["capacidadmax"], {"ciudad":row["name"],"value": int(row["dock_count"])})
+        mg.mergesort(city["value"]["capacidadmax"], comparemayor)
+    if not station:
+        NewStation(catalog, row)
+    else: 
+        lt.addLast(city["value"]["stations"], row["city"]) 
 
 
 
@@ -77,35 +137,79 @@ def addLibraryEdge  (catalog, row):
     """
     g.addEdge (catalog['librariesGraph'], row['ID_src'], row['ID_dst'], float(row['dist']))
 
-def addFlightNode(catalog, row):
+def addTripNode(catalog, row):
     """
     Adiciona un nodo para almacenar un vuelo. 
     """
-    if not g.containsVertex(catalog['flightGraph'], row['VERTEX']):
-        g.insertVertex (catalog['flightGraph'], row['VERTEX'])
+    if not g.containsVertex(catalog['TripGraph'], row['src']):
+        g.insertVertex (catalog['TripGraph'], row['src'])
 
-def addFlightEdge (catalog, row):
+def addTripEdge (catalog, row):
     """
     Adiciona un enlace para conectar dos vuelos
     """
-    g.addEdge (catalog['flightGraph'], row['SOURCE'], row['DEST'], int(row['DISTANCE']))
+    g.addEdge (catalog['TripGraph'], row['src'], row['dst'], float(row['duration']))
 
-def countNodesEdges (catalog):
-    """
-    Retorna la cantidad de nodos y enlaces del grafo de bibliotecas
-    """
-    nodes = g.numVertex(catalog['librariesGraph'])
-    edges = g.numEdges(catalog['librariesGraph'])
+def Requerimiento1(catalog, city):
+    Map=catalog["BikesMap"]
+    cities= map.get(Map, city)
+    i= 0
+    resul= lt.newList("ARRAY_LIST")
+    while i < 3:
+        lt.addLast(resul, cities["value"]["capacidadmax"]["elements"][i] )
+        i+=1
+    return resul 
+def Requerimiento2(catalog, date1, date2):
+    formato= '%Y/%m/%d'
+    Map=catalog["TripTree"]
+    cities= tree.valueRange(Map, strToDate(date1,formato),strToDate(date2,formato) , greater)
+    print(cities)
+    resul= lt.newList("ARRAY_LIST")
+    contador= 0
+    res=""
+    ciudades= map.newMap(comparefunction=compareByKey)
+    if cities:
+        for Año in cities["elements"]:
+            Ci= map.keySet(Año["City"])
+            iterator=it.newIterator(Ci)
+            contador+= lt.size(Año["Citylist"])
+            while it.hasNext(iterator):
+                SevKey = it.next(iterator)
+                Valor = map.get(Año["City"],SevKey)
+                Está= map.get(ciudades, SevKey)
+                if Está:       
+                    Está+=Valor
+                    map.put(ciudades,SevKey, Está)
+                else:
+                    map.put(ciudades, SevKey, Valor)
+        res+= HacerRespuesta(ciudades)
+        res+= "El total de accidentes entre las fechas " + str(date1) + " y " + str(date2)+ " fue "+ str(contador)+ "\n"
+    return res
 
-    return nodes,edges
-
+def Requerimiento3(catalog, N):
+    Map=catalog["BikesMap"]
+    cities= map.get(Map, N)
+    i= 0
+    resul= lt.newList("ARRAY_LIST")
+    while i < 3:
+        lt.addLast(resul, cities["value"]["capacidadmax"]["elements"][i] )
+        i+=1
+    return resul 
+def HacerRespuesta(Dic):
+    res=""
+    Severidades= map.keySet(Dic)
+    iterator=it.newIterator(Severidades)
+    while it.hasNext(iterator):
+        SevKey = it.next(iterator)
+        res += 'Ciudad '+ SevKey + ' : ' + str(map.get(Dic,SevKey) ) + '\n'
+    return res
 def getShortestPath (catalog, source, dst):
     """
     Retorna el camino de menor costo entre vertice origen y destino, si existe 
     """
     print("vertices: ",source,", ",dst)
 
-    dijkstra= dj.newDijkstra(catalog['flightGraph'], source)
+    dijkstra= dj.newDijkstra(catalog['TripGraph'], source)
 
     Path= dj.pathTo(dijkstra, dst)
     # ejecutar Dijkstra desde source
@@ -118,3 +222,22 @@ def getShortestPath (catalog, source, dst):
 def compareByKey (key, element):
     return  (key == element['key'] )  
 
+def comparemayor (elem1, elem2):
+    return ( float(elem1['value']) > float(elem2['value']))
+
+
+def greater (key1, key2):
+    if ( key1 == key2):
+        return 0
+    elif (key1 < key2):
+        return -1
+    else:
+        return 1
+
+def strToDate(date_string, format):
+    
+    try:
+        # date_string = '2016/05/18 13:55:26' -> format = '%Y/%m/%d %H:%M:%S')
+        return datetime.strptime(date_string,format)
+    except:
+        return datetime.strptime('1900', '%Y')

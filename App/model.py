@@ -221,9 +221,9 @@ def Requerimiento3(catalog, N):
         lt.addLast(lista, Map["elements"][i])
 
     for i in lista["elements"]: 
-        res+= "Día: "+ str(i["Date"])
-        res+="Temperatura promedio: "+ str(i["value"])
-        res+= Requerimiento22(catalog, i["Date"], i["Date"])
+        res+= "Fecha: "+ str(i["Date"])+"\n"
+        res+="Temperatura promedio: "+ str(i["value"])+"\n"
+        res+= Requerimiento22(catalog, i["Date"], i["Date"])+"\n"
     
     return res
          
@@ -245,7 +245,7 @@ def HacerRespuesta1(Dic):
     iterator=it.newIterator(Severidades)
     while it.hasNext(iterator):
         SevKey = it.next(iterator)
-        res += 'Ciudad '+ SevKey + ' : ' + str(map.get(Dic,SevKey) ) + '\n'
+        res += 'Ciudad '+ SevKey + ' : ' + str(map.get(Dic,SevKey)["value"]["value"] ) + '\n'
     return res
 def getShortestPath (catalog, source, dst):
     """

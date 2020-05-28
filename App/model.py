@@ -206,7 +206,7 @@ def Requerimiento22(catalog, date1, date2):
                     map.put(ciudades,SevKey, Está)
                 else:
                     map.put(ciudades, SevKey, Valor)
-        res+= HacerRespuesta(ciudades)
+        res+= HacerRespuesta1(ciudades)
         res+= "El total de viajes entre las fechas " + str(date1) + " y " + str(date2)+ " fue "+ str(contador)+ "\n"
     return res
 def Requerimiento3(catalog, N):
@@ -237,6 +237,15 @@ def HacerRespuesta(Dic):
     while it.hasNext(iterator):
         SevKey = it.next(iterator)
         res += 'Ciudad '+ SevKey + ' : ' + str(map.get(Dic,SevKey)["value"]["value"]["value"] ) + '\n'
+    return res
+
+def HacerRespuesta1(Dic):
+    res=""
+    Severidades= map.keySet(Dic)
+    iterator=it.newIterator(Severidades)
+    while it.hasNext(iterator):
+        SevKey = it.next(iterator)
+        res += 'Ciudad '+ SevKey + ' : ' + str(map.get(Dic,SevKey) ) + '\n'
     return res
 def getShortestPath (catalog, source, dst):
     """

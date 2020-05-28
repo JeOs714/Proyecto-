@@ -184,7 +184,31 @@ def Requerimiento2(catalog, date1, date2):
         res+= HacerRespuesta(ciudades)
         res+= "El total de viajes entre las fechas " + str(date1) + " y " + str(date2)+ " fue "+ str(contador)+ "\n"
     return res
-
+def Requerimiento22(catalog, date1, date2):
+    formato= '%Y/%m/%d'
+    Map=catalog["TripTree"]
+    cities= tree.valueRange(Map, date1, date2, greater)
+    resul= lt.newList("ARRAY_LIST")
+    contador= 0
+    res=""
+    ciudades= map.newMap(comparefunction=compareByKey)
+    if cities:
+        for Año in cities["elements"]:
+            Ci= map.keySet(Año["City"])
+            iterator=it.newIterator(Ci)
+            contador+= lt.size(Año["Citylist"])
+            while it.hasNext(iterator):
+                SevKey = it.next(iterator)
+                Valor = map.get(Año["City"],SevKey)
+                Está= map.get(ciudades, SevKey)
+                if Está:       
+                    Está["value"]["value"] +=Valor["value"]
+                    map.put(ciudades,SevKey, Está)
+                else:
+                    map.put(ciudades, SevKey, Valor)
+        res+= HacerRespuesta(ciudades)
+        res+= "El total de viajes entre las fechas " + str(date1) + " y " + str(date2)+ " fue "+ str(contador)+ "\n"
+    return res
 def Requerimiento3(catalog, N):
     Map=catalog["List"]
     Tree=catalog["TripTree"]
@@ -199,7 +223,7 @@ def Requerimiento3(catalog, N):
     for i in lista["elements"]: 
         res+= "Día: "+ str(i["Date"])
         res+="Temperatura promedio: "+ str(i["value"])
-        res+= Requerimiento2(catalog, i["Date"], i["Date"])
+        res+= Requerimiento22(catalog, i["Date"], i["Date"])
     
     return res
          

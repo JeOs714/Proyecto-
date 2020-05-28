@@ -79,7 +79,7 @@ def newTripDate(catalog, row):
 
 def addWeather(catalog, row):
     formato= '%Y/%m/%d'
-    lt.addLast(catalog["List"], {"Date":strToDate(row["date"],formato), "value": row["mean_temperature_f"]} )
+    lt.addLast(catalog["List"], {"Date":row["date"].split("-")[0]+row["date"].split("-")[1]+row["date"].split("-")[2], "value": row["mean_temperature_f"]} )
 
 def addTripDate (catalog, row):
     """
@@ -163,7 +163,6 @@ def Requerimiento2(catalog, date1, date2):
     formato= '%Y/%m/%d'
     Map=catalog["TripTree"]
     cities= tree.valueRange(Map, strToDate(date1,formato),strToDate(date2,formato) , greater)
-    print(cities)
     resul= lt.newList("ARRAY_LIST")
     contador= 0
     res=""
@@ -178,30 +177,42 @@ def Requerimiento2(catalog, date1, date2):
                 Valor = map.get(Año["City"],SevKey)
                 Está= map.get(ciudades, SevKey)
                 if Está:       
-                    Está+=Valor
+                    Está["value"]["value"] +=Valor["value"]
                     map.put(ciudades,SevKey, Está)
                 else:
                     map.put(ciudades, SevKey, Valor)
         res+= HacerRespuesta(ciudades)
-        res+= "El total de accidentes entre las fechas " + str(date1) + " y " + str(date2)+ " fue "+ str(contador)+ "\n"
+        res+= "El total de viajes entre las fechas " + str(date1) + " y " + str(date2)+ " fue "+ str(contador)+ "\n"
     return res
 
 def Requerimiento3(catalog, N):
-    Map=catalog["BikesMap"]
-    cities= map.get(Map, N)
-    i= 0
-    resul= lt.newList("ARRAY_LIST")
-    while i < 3:
-        lt.addLast(resul, cities["value"]["capacidadmax"]["elements"][i] )
-        i+=1
-    return resul 
+    Map=catalog["List"]
+    Tree=catalog["TripTree"]
+    lista= lt.newList("ARRAY_LIST")
+    res=""
+
+    for i in range(0, N):
+        lt.addLast(lista, Map["elements"][i])
+    for i in range(lt.size(lista)-N-1, lt.size(lista)):
+        lt.addLast(lista, Map["elements"][i])
+
+    for i in lista["elements"]: 
+        res+= "Día: "+ str(i["Date"])
+        res+="Temperatura promedio: "+ str(i["value"])
+        res+= Requerimiento2(catalog, i["Date"], i["Date"])
+    
+    return res
+         
+
+
+    
 def HacerRespuesta(Dic):
     res=""
     Severidades= map.keySet(Dic)
     iterator=it.newIterator(Severidades)
     while it.hasNext(iterator):
         SevKey = it.next(iterator)
-        res += 'Ciudad '+ SevKey + ' : ' + str(map.get(Dic,SevKey) ) + '\n'
+        res += 'Ciudad '+ SevKey + ' : ' + str(map.get(Dic,SevKey)["value"]["value"]["value"] ) + '\n'
     return res
 def getShortestPath (catalog, source, dst):
     """
@@ -235,9 +246,24 @@ def greater (key1, key2):
         return 1
 
 def strToDate(date_string, format):
-    
+
+    nume= date_string.split("/")
+    res=""
+    if len(nume[0])<2 and len(nume[1])<2:
+        res= nume[2]+"0"+nume[0]+"0"+nume[1]
+    elif len(nume[0])<2:
+        res= nume[2]+"0"+nume[0]+nume[1]
+    elif len(nume[1])<2:
+        res= nume[2]+nume[0]+"0"+nume[1]
+    else:
+        res= nume[2]+nume[0]+nume[1]
+
+    return res
+    """
+    formato= '%Y/%m/%d %H:%M:%S'
     try:
         # date_string = '2016/05/18 13:55:26' -> format = '%Y/%m/%d %H:%M:%S')
-        return datetime.strptime(date_string,format)
+        return datetime.strptime(date_string,formato)
     except:
         return datetime.strptime('1900', '%Y')
+    """

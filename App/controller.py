@@ -146,8 +146,8 @@ def loadData (catalog):
     #loadLibraries(catalog)
     loadCities(catalog)
     loadArbol(catalog)
-    #loadTrips(catalog)
-    #loadWeather(catalog)
+    loadTrips(catalog)
+    loadWeather(catalog)
     sort.mergesort(catalog["List"], comparemayor)
 
 # Funciones llamadas desde la vista y enviadas al modelo
